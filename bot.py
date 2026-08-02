@@ -95,6 +95,9 @@ async def ricevi_testo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    import os
+    from flask import Flask, request
+
     app = Application.builder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
@@ -107,18 +110,43 @@ def main():
         MessageHandler(filters.TEXT & ~filters.COMMAND, ricevi_testo)
     )
 
-    print("Bot avviato")
+    flask_app = Flask(__name__)
+
+    @flask_app.route("/", methods=["GET"])
+    def home():
+        return "Bot attivo"
+
+    @flask_app.route("/webhook", methods=["POST"])
+    async def webhook():
+        update = Update.de_json(
+            request.get_json(force=True),
+            app.bot
+        )
+
+        await app.process_update(update)
+
+        return "ok"
+
+
+    async def setup():
+        await app.initialize()
+
+        await app.bot.set_webhook(
+            url="https://invio-candidature-bot.onrender.com/webhook"
+        )
+
+        await app.start()
+
 
     import asyncio
+    asyncio.run(setup())
 
-    async def run():
-        await app.initialize()
-        await app.start()
-        await app.updater.start_polling()
+    port = int(os.environ.get("PORT", 10000))
 
-        await asyncio.Event().wait()
-
-    asyncio.run(run())
+    flask_app.run(
+        host="0.0.0.0",
+        port=port
+    )
 
 
 if __name__ == "__main__":
