@@ -112,11 +112,12 @@ def main():
 
     flask_app = Flask(__name__)
 
-    @flask_app.route("/", methods=["GET"])
-    def home():
-        return "Bot attivo"
+@flask_app.route("/", methods=["GET"])
+def home():
+    return "Bot attivo"
 
-    @flask_app.route("/webhook", methods=["POST"])
+
+@flask_app.route("/webhook", methods=["POST"])
 def webhook():
     import asyncio
 
