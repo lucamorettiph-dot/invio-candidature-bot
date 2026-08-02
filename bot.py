@@ -107,10 +107,18 @@ def main():
         MessageHandler(filters.TEXT & ~filters.COMMAND, ricevi_testo)
     )
 
-    print("Bot avviato")
+   print("Bot avviato")
 
-    app.run_polling()
+import asyncio
 
+async def run():
+    await app.initialize()
+    await app.start()
+    await app.updater.start_polling()
+
+    await asyncio.Event().wait()
+
+asyncio.run(run())
 
 if __name__ == "__main__":
     main()
