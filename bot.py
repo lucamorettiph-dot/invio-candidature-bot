@@ -1,5 +1,9 @@
 import os
-from telegram import Update, InputMediaPhoto
+import asyncio
+
+from flask import Flask, request
+
+from telegram import Update
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -8,130 +12,109 @@ from telegram.ext import (
     filters
 )
 
+
 TOKEN = os.environ.get("BOT_TOKEN")
 
 GRUPPO_ID = -1003951776949
 
-# memoria temporanea delle candidature
-candidature = {}
-
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.chat.id
-
-    candidature[user_id] = {
-        "foto": [],
-        "dati": None
-    }
 
     await update.message.reply_text(
         "👋 Benvenuto!\n\n"
-        "Invia da 5 a 10 foto della candidata.\n"
-        "Dopo le foto invia nome ed età."
+        "Invia foto o messaggi.\n"
+        "Il contenuto verrà inoltrato automaticamente."
     )
 
 
-async def ricevi_foto(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.chat.id
+async def inoltra(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    if user_id not in candidature:
-        candidature[user_id] = {
-            "foto": [],
-            "dati": None
-        }
+    try:
 
-    foto = update.message.photo[-1].file_id
+        # FOTO
+        if update.message.photo:
 
-    if len(candidature[user_id]["foto"]) < 10:
-        candidature[user_id]["foto"].append(foto)
-
-    numero = len(candidature[user_id]["foto"])
-
-    await update.message.reply_text(
-        f"📸 Foto ricevute: {numero}\n"
-        "Puoi continuare a inviare foto oppure scrivere nome ed età."
-    )
+            await context.bot.send_photo(
+                chat_id=GRUPPO_ID,
+                photo=update.message.photo[-1].file_id,
+                caption=update.message.caption
+            )
 
 
-async def ricevi_testo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.chat.id
+        # TESTO
+        elif update.message.text:
 
-    testo = update.message.text
+            await context.bot.send_message(
+                chat_id=GRUPPO_ID,
+                text=update.message.text
+            )
 
-    if user_id not in candidature:
-        return
 
-    candidature[user_id]["dati"] = testo
+        # ALTRI TIPI DI MESSAGGIO
+        else:
 
-    foto = candidature[user_id]["foto"]
+            await context.bot.forward_message(
+                chat_id=GRUPPO_ID,
+                from_chat_id=update.message.chat.id,
+                message_id=update.message.message_id
+            )
 
-    if len(foto) < 5:
+
         await update.message.reply_text(
-            "⚠️ Servono almeno 5 foto prima di inviare la candidatura."
-        )
-        return
-
-    await context.bot.send_message(
-        chat_id=GRUPPO_ID,
-        text=f"📸 NUOVA CANDIDATURA\n\n📝 Dati:\n{testo}"
-    )
-
-    media = []
-
-    for f in foto:
-        media.append(
-            InputMediaPhoto(media=f)
+            "✅ Inviato correttamente"
         )
 
-    await context.bot.send_media_group(
-        chat_id=GRUPPO_ID,
-        media=media
-    )
 
-    await update.message.reply_text(
-        "✅ Candidatura inviata correttamente!"
-    )
+    except Exception as e:
 
-    del candidature[user_id]
+        print("ERRORE INVIO:", e)
+
 
 
 def main():
-    import os
-    import asyncio
-    from flask import Flask, request
 
     app = Application.builder().token(TOKEN).build()
 
-    app.add_handler(CommandHandler("start", start))
 
     app.add_handler(
-        MessageHandler(filters.PHOTO, ricevi_foto)
+        CommandHandler("start", start)
     )
 
+
     app.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, ricevi_testo)
+        MessageHandler(
+            filters.ALL & ~filters.COMMAND,
+            inoltra
+        )
     )
+
 
     flask_app = Flask(__name__)
 
-    @flask_app.route("/", methods=["GET"])
+
+    @flask_app.route("/")
     def home():
         return "Bot attivo"
 
 
     @flask_app.route("/webhook", methods=["POST"])
     def webhook():
+
         update = Update.de_json(
             request.get_json(force=True),
             app.bot
         )
 
-        asyncio.run(app.process_update(update))
+        asyncio.run(
+            app.process_update(update)
+        )
 
         return "ok"
 
 
+
     async def setup():
+
         await app.initialize()
 
         await app.bot.set_webhook(
@@ -141,14 +124,20 @@ def main():
         await app.start()
 
 
+
     asyncio.run(setup())
 
-    port = int(os.environ.get("PORT", 10000))
+
+    port = int(
+        os.environ.get("PORT", 10000)
+    )
+
 
     flask_app.run(
         host="0.0.0.0",
         port=port
     )
+
 
 
 if __name__ == "__main__":
