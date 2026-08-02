@@ -96,6 +96,7 @@ async def ricevi_testo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     import os
+    import asyncio
     from flask import Flask, request
 
     app = Application.builder().token(TOKEN).build()
@@ -112,23 +113,21 @@ def main():
 
     flask_app = Flask(__name__)
 
-@flask_app.route("/", methods=["GET"])
-def home():
-    return "Bot attivo"
+    @flask_app.route("/", methods=["GET"])
+    def home():
+        return "Bot attivo"
 
 
-@flask_app.route("/webhook", methods=["POST"])
-def webhook():
-    import asyncio
+    @flask_app.route("/webhook", methods=["POST"])
+    def webhook():
+        update = Update.de_json(
+            request.get_json(force=True),
+            app.bot
+        )
 
-    update = Update.de_json(
-        request.get_json(force=True),
-        app.bot
-    )
+        asyncio.run(app.process_update(update))
 
-    asyncio.run(app.process_update(update))
-
-    return "ok"
+        return "ok"
 
 
     async def setup():
@@ -141,7 +140,6 @@ def webhook():
         await app.start()
 
 
-    import asyncio
     asyncio.run(setup())
 
     port = int(os.environ.get("PORT", 10000))
