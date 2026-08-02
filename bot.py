@@ -42,13 +42,14 @@ async def ricevi_foto(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     foto = update.message.photo[-1].file_id
 
-    candidature[user_id]["foto"].append(foto)
+    if len(candidature[user_id]["foto"]) < 10:
+        candidature[user_id]["foto"].append(foto)
 
     numero = len(candidature[user_id]["foto"])
 
     await update.message.reply_text(
-        f"📸 Foto ricevuta ({numero}/10)\n"
-        "Puoi inviarne altre oppure scrivere nome ed età."
+        f"📸 Foto ricevute: {numero}\n"
+        "Puoi continuare a inviare foto oppure scrivere nome ed età."
     )
 
 
