@@ -66,13 +66,13 @@ def main():
     @flask_app.route("/webhook", methods=["POST"])
     def webhook():
 
-        print("ARRIVATO WEBHOOK")
+        print("ARRIVATO WEBHOOK", flush=True)
 
         data = request.get_json(force=True)
 
-        print("========== DATI TELEGRAM ==========")
-        print(data)
-        print("===================================")
+        print("========== DATI TELEGRAM ==========", flush=True)
+        print(data, flush=True)
+        print("===================================", flush=True)
 
 
         update = Update.de_json(
@@ -94,7 +94,9 @@ def main():
 
 
         return "ok"
-        
+
+
+
     async def setup():
 
         await app.initialize()
@@ -105,7 +107,7 @@ def main():
 
         await app.start()
 
-        print("BOT AVVIATO")
+        print("BOT AVVIATO", flush=True)
 
 
 
