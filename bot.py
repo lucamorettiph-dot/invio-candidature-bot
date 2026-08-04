@@ -26,8 +26,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 async def chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("CHAT ID:", update.effective_chat.id)
-    print("TIPO:", update.effective_chat.type)
+    print("========== UPDATE RICEVUTO ==========")
+    print(update)
+    print("======================================")
 
 
 async def inoltra(update: Update, context: ContextTypes.DEFAULT_TYPE):
