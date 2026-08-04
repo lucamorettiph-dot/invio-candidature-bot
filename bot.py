@@ -23,6 +23,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "👋 Benvenuto!\n\n"
         "Invia foto o messaggi.\n"
         "Il contenuto verrà inoltrato automaticamente."
+    )
 
 async def chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("CHAT:", update.effective_chat.id)
@@ -83,22 +84,24 @@ def main():
     app = Application.builder().token(TOKEN).build()
 
 
-   app.add_handler(
-    CommandHandler("start", start)
-)
+    app.add_handler(
+        CommandHandler("start", start)
+    )
 
-app.add_handler(
-    MessageHandler(filters.ALL, chat_id),
-    group=0
-)
 
-app.add_handler(
-    MessageHandler(
-        filters.ALL & ~filters.COMMAND,
-        inoltra
-    ),
-    group=1
-)
+    app.add_handler(
+        MessageHandler(filters.ALL, chat_id),
+        group=0
+    )
+
+
+    app.add_handler(
+        MessageHandler(
+            filters.ALL & ~filters.COMMAND,
+            inoltra
+        ),
+        group=1
+    )
     
     flask_app = Flask(__name__)
 
