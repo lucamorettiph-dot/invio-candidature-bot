@@ -65,30 +65,35 @@ def main():
     @flask_app.route("/webhook", methods=["POST"])
     def webhook():
 
+        print("ARRIVATO WEBHOOK")
+
         data = request.get_json(force=True)
 
         print("========== DATI TELEGRAM ==========")
         print(data)
         print("===================================")
 
+
         update = Update.de_json(
             data,
             app.bot
         )
 
+
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
+
 
         loop.run_until_complete(
             app.process_update(update)
         )
 
+
         loop.close()
 
+
         return "ok"
-
-
-
+        
     async def setup():
 
         await app.initialize()
