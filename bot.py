@@ -3,7 +3,7 @@ import asyncio
 
 from flask import Flask, request
 
-from telegram import Update
+from telegram import Update, InputMediaPhoto
 
 from telegram.ext import (
     Application,
@@ -24,8 +24,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
         "👋 Benvenuto!\n\n"
-        "Invia foto, video, file o messaggi.\n"
-        "Il contenuto verrà inviato automaticamente."
+        "Invia foto, messaggi o file.\n"
+        "Il contenuto verrà inoltrato automaticamente."
     )
 
 
@@ -34,76 +34,95 @@ async def inoltra(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
 
-        messaggio = update.message
+        msg = update.message
 
 
-        # FOTO
-        if messaggio.photo:
+        # ALBUM DI FOTO
+        if msg.media_group_id:
+
+            if "album" not in context.chat_data:
+                context.chat_data["album"] = []
+
+            context.chat_data["album"].append(
+                msg.photo[-1].file_id
+            )
+
+
+            await asyncio.sleep(2)
+
+
+            media = []
+
+            for foto in context.chat_data["album"]:
+
+                media.append(
+                    InputMediaPhoto(
+                        media=foto
+                    )
+                )
+
+
+            await context.bot.send_media_group(
+                chat_id=GRUPPO_ID,
+                media=media
+            )
+
+
+            context.chat_data["album"] = []
+
+
+
+        # FOTO SINGOLA
+        elif msg.photo:
 
             await context.bot.send_photo(
                 chat_id=GRUPPO_ID,
-                photo=messaggio.photo[-1].file_id,
-                caption=messaggio.caption
+                photo=msg.photo[-1].file_id,
+                caption=msg.caption
             )
 
-
-        # VIDEO
-        elif messaggio.video:
-
-            await context.bot.send_video(
-                chat_id=GRUPPO_ID,
-                video=messaggio.video.file_id,
-                caption=messaggio.caption
-            )
-
-
-        # DOCUMENTI / FILE
-        elif messaggio.document:
-
-            await context.bot.send_document(
-                chat_id=GRUPPO_ID,
-                document=messaggio.document.file_id,
-                caption=messaggio.caption
-            )
-
-
-        # AUDIO
-        elif messaggio.audio:
-
-            await context.bot.send_audio(
-                chat_id=GRUPPO_ID,
-                audio=messaggio.audio.file_id,
-                caption=messaggio.caption
-            )
 
 
         # TESTO
-        elif messaggio.text:
+        elif msg.text:
 
             await context.bot.send_message(
                 chat_id=GRUPPO_ID,
-                text=messaggio.text
+                text=msg.text
             )
 
 
-        else:
 
-            print(
-                "Messaggio non supportato",
-                flush=True
+        # DOCUMENTI / FILE
+
+        elif msg.document:
+
+            await context.bot.send_document(
+                chat_id=GRUPPO_ID,
+                document=msg.document.file_id,
+                caption=msg.caption
             )
 
 
-        print(
-            "MESSAGGIO INVIATO AL GRUPPO",
-            flush=True
-        )
+
+        # VIDEO
+
+        elif msg.video:
+
+            await context.bot.send_video(
+                chat_id=GRUPPO_ID,
+                video=msg.video.file_id,
+                caption=msg.caption
+            )
+
+
+        print("MESSAGGIO INVIATO", flush=True)
 
 
     except Exception as e:
 
         print(
-            "ERRORE INVIO:",
+            "ERRORE:",
             e,
             flush=True
         )
@@ -115,12 +134,14 @@ def main():
     app = Application.builder().token(TOKEN).build()
 
 
+
     app.add_handler(
         CommandHandler(
             "start",
             start
         )
     )
+
 
 
     app.add_handler(
@@ -209,6 +230,7 @@ def main():
             10000
         )
     )
+
 
 
     flask_app.run(
