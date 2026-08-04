@@ -15,7 +15,7 @@ from telegram.ext import (
 
 TOKEN = os.environ.get("BOT_TOKEN")
 
-GRUPPO_ID = 
+GRUPPO_ID = -1003951776949
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
