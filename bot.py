@@ -15,8 +15,14 @@ from telegram.ext import (
 
 TOKEN = os.environ.get("BOT_TOKEN")
 
-GRUPPO_ID = -1003951776949
+GRUPPO_ID = 
 
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    await update.message.reply_text(
+        "👋 Benvenuto!\n\n"
+        "Invia foto o messaggi.\n"
+        "Il contenuto verrà inoltrato automaticamente."
 
 async def chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("CHAT:", update.effective_chat.id)
@@ -77,27 +83,22 @@ def main():
     app = Application.builder().token(TOKEN).build()
 
 
-    app.add_handler(
-        CommandHandler("start", start)
-    )
+   app.add_handler(
+    CommandHandler("start", start)
+)
 
+app.add_handler(
+    MessageHandler(filters.ALL, chat_id),
+    group=0
+)
 
-    app.add_handler(
-        MessageHandler(
-            filters.ALL,
-            id_gruppo
-        ),
-        group=0
-    )
-
-
-    app.add_handler(
-        MessageHandler(
-            filters.ALL & ~filters.COMMAND,
-            inoltra
-        ),
-        group=1
-    )
+app.add_handler(
+    MessageHandler(
+        filters.ALL & ~filters.COMMAND,
+        inoltra
+    ),
+    group=1
+)
     
     flask_app = Flask(__name__)
 
