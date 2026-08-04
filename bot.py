@@ -4,6 +4,7 @@ import asyncio
 from flask import Flask, request
 
 from telegram import Update
+
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -15,25 +16,36 @@ from telegram.ext import (
 
 TOKEN = os.environ.get("BOT_TOKEN")
 
-print("VERSIONE BOT TEST 123")
+GRUPPO_ID = -1004446298918
+
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
-        "👋 Bot attivo!\n\n"
-        "Invia un messaggio per il test."
+        "👋 Benvenuto!\n\n"
+        "Invia foto, messaggi o file.\n"
+        "Il contenuto verrà inoltrato automaticamente."
     )
 
 
-async def chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    print("========== UPDATE RICEVUTO ==========")
-    print(update)
-    print("=====================================")
+async def inoltra(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    if update.effective_chat:
-        print("CHAT ID:", update.effective_chat.id)
-        print("TIPO:", update.effective_chat.type)
+    try:
+
+        await context.bot.forward_message(
+            chat_id=GRUPPO_ID,
+            from_chat_id=update.message.chat.id,
+            message_id=update.message.message_id
+        )
+
+        print("MESSAGGIO INOLTRATO", flush=True)
+
+
+    except Exception as e:
+
+        print("ERRORE INVIO:", e, flush=True)
 
 
 
@@ -43,36 +55,37 @@ def main():
 
 
     app.add_handler(
-        CommandHandler("start", start)
+        CommandHandler(
+            "start",
+            start
+        )
     )
 
 
     app.add_handler(
         MessageHandler(
-            filters.ALL,
-            chat_id
+            filters.ALL & ~filters.COMMAND,
+            inoltra
         )
     )
+
 
 
     flask_app = Flask(__name__)
 
 
+
     @flask_app.route("/")
     def home():
+
         return "Bot attivo"
+
 
 
     @flask_app.route("/webhook", methods=["POST"])
     def webhook():
 
-        print("ARRIVATO WEBHOOK", flush=True)
-
         data = request.get_json(force=True)
-
-        print("========== DATI TELEGRAM ==========", flush=True)
-        print(data, flush=True)
-        print("===================================", flush=True)
 
 
         update = Update.de_json(
@@ -101,11 +114,14 @@ def main():
 
         await app.initialize()
 
+
         await app.bot.set_webhook(
             url="https://invio-candidature-bot.onrender.com/webhook"
         )
 
+
         await app.start()
+
 
         print("BOT AVVIATO", flush=True)
 
@@ -114,11 +130,18 @@ def main():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    loop.run_until_complete(setup())
+
+    loop.run_until_complete(
+        setup()
+    )
+
 
 
     port = int(
-        os.environ.get("PORT", 10000)
+        os.environ.get(
+            "PORT",
+            10000
+        )
     )
 
 
