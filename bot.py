@@ -99,7 +99,7 @@ def main():
         group=1
     )
     
-    flask_app = Flask(__name__)
+       flask_app = Flask(__name__)
 
 
     @flask_app.route("/")
@@ -107,7 +107,7 @@ def main():
         return "Bot attivo"
 
 
-       @flask_app.route("/webhook", methods=["POST"])
+    @flask_app.route("/webhook", methods=["POST"])
     def webhook():
 
         data = request.get_json(force=True)
