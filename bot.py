@@ -107,7 +107,7 @@ def main():
         return "Bot attivo"
 
 
-    @flask_app.route("/webhook", methods=["POST"])
+       @flask_app.route("/webhook", methods=["POST"])
     def webhook():
 
         data = request.get_json(force=True)
@@ -116,17 +116,8 @@ def main():
         print(data)
         print("===================================")
 
-        update = Update.de_json(
-            data,
-            app.bot
-        )
-
-        asyncio.run(
-            app.process_update(update)
-        )
-
         return "ok"
-
+        
     async def setup():
 
         await app.initialize()
