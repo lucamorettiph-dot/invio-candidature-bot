@@ -24,8 +24,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
         "👋 Benvenuto!\n\n"
-        "Invia foto, messaggi o file.\n"
-        "Il contenuto verrà inoltrato automaticamente."
+        "Invia foto, video, file o messaggi.\n"
+        "Il contenuto verrà inviato automaticamente."
     )
 
 
@@ -34,18 +34,79 @@ async def inoltra(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
 
-        await context.bot.forward_message(
-            chat_id=GRUPPO_ID,
-            from_chat_id=update.message.chat.id,
-            message_id=update.message.message_id
-        )
+        messaggio = update.message
 
-        print("MESSAGGIO INOLTRATO", flush=True)
+
+        # FOTO
+        if messaggio.photo:
+
+            await context.bot.send_photo(
+                chat_id=GRUPPO_ID,
+                photo=messaggio.photo[-1].file_id,
+                caption=messaggio.caption
+            )
+
+
+        # VIDEO
+        elif messaggio.video:
+
+            await context.bot.send_video(
+                chat_id=GRUPPO_ID,
+                video=messaggio.video.file_id,
+                caption=messaggio.caption
+            )
+
+
+        # DOCUMENTI / FILE
+        elif messaggio.document:
+
+            await context.bot.send_document(
+                chat_id=GRUPPO_ID,
+                document=messaggio.document.file_id,
+                caption=messaggio.caption
+            )
+
+
+        # AUDIO
+        elif messaggio.audio:
+
+            await context.bot.send_audio(
+                chat_id=GRUPPO_ID,
+                audio=messaggio.audio.file_id,
+                caption=messaggio.caption
+            )
+
+
+        # TESTO
+        elif messaggio.text:
+
+            await context.bot.send_message(
+                chat_id=GRUPPO_ID,
+                text=messaggio.text
+            )
+
+
+        else:
+
+            print(
+                "Messaggio non supportato",
+                flush=True
+            )
+
+
+        print(
+            "MESSAGGIO INVIATO AL GRUPPO",
+            flush=True
+        )
 
 
     except Exception as e:
 
-        print("ERRORE INVIO:", e, flush=True)
+        print(
+            "ERRORE INVIO:",
+            e,
+            flush=True
+        )
 
 
 
@@ -95,6 +156,7 @@ def main():
 
 
         loop = asyncio.new_event_loop()
+
         asyncio.set_event_loop(loop)
 
 
@@ -123,11 +185,15 @@ def main():
         await app.start()
 
 
-        print("BOT AVVIATO", flush=True)
+        print(
+            "BOT AVVIATO",
+            flush=True
+        )
 
 
 
     loop = asyncio.new_event_loop()
+
     asyncio.set_event_loop(loop)
 
 
