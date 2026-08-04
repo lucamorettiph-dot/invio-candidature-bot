@@ -15,63 +15,24 @@ from telegram.ext import (
 
 TOKEN = os.environ.get("BOT_TOKEN")
 
-GRUPPO_ID = -1003951776949
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
-        "👋 Benvenuto!\n\n"
-        "Invia foto o messaggi.\n"
-        "Il contenuto verrà inoltrato automaticamente."
+        "👋 Bot attivo!\n\n"
+        "Invia un messaggio per il test."
     )
 
+
 async def chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
     print("========== UPDATE RICEVUTO ==========")
     print(update)
-    print("======================================")
+    print("=====================================")
 
-
-async def inoltra(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    try:
-
-        # FOTO
-        if update.message.photo:
-
-            await context.bot.send_photo(
-                chat_id=GRUPPO_ID,
-                photo=update.message.photo[-1].file_id,
-                caption=update.message.caption
-            )
-
-
-        # TESTO
-        elif update.message.text:
-
-            await context.bot.send_message(
-                chat_id=GRUPPO_ID,
-                text=update.message.text
-            )
-
-
-        # ALTRI TIPI DI MESSAGGIO
-        else:
-
-            await context.bot.forward_message(
-                chat_id=GRUPPO_ID,
-                from_chat_id=update.message.chat.id,
-                message_id=update.message.message_id
-            )
-
-
-        await update.message.reply_text(
-            "✅ Inviato correttamente"
-        )
-
-
-    except Exception as e:
-
-        print("ERRORE INVIO:", e)
+    if update.effective_chat:
+        print("CHAT ID:", update.effective_chat.id)
+        print("TIPO:", update.effective_chat.type)
 
 
 
@@ -86,17 +47,10 @@ def main():
 
 
     app.add_handler(
-        MessageHandler(filters.ALL, chat_id),
-        group=0
-    )
-
-
-    app.add_handler(
         MessageHandler(
-            filters.ALL & ~filters.COMMAND,
-            inoltra
-        ),
-        group=1
+            filters.ALL,
+            chat_id
+        )
     )
 
 
@@ -117,8 +71,24 @@ def main():
         print(data)
         print("===================================")
 
+        update = Update.de_json(
+            data,
+            app.bot
+        )
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        loop.run_until_complete(
+            app.process_update(update)
+        )
+
+        loop.close()
+
         return "ok"
-        
+
+
+
     async def setup():
 
         await app.initialize()
@@ -129,9 +99,14 @@ def main():
 
         await app.start()
 
+        print("BOT AVVIATO")
 
 
-    asyncio.run(setup())
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    loop.run_until_complete(setup())
 
 
     port = int(
