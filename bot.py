@@ -18,7 +18,8 @@ TOKEN = os.environ.get("BOT_TOKEN")
 GRUPPO_ID = -1003951776949
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("CHAT:", update.effective_chat.id)
 
     await update.message.reply_text(
         "👋 Benvenuto!\n\n"
@@ -83,12 +84,21 @@ def main():
 
     app.add_handler(
         MessageHandler(
-            filters.ALL & ~filters.COMMAND,
-            inoltra
-        )
+            filters.ALL,
+            id_gruppo
+        ),
+        group=0
     )
 
 
+    app.add_handler(
+        MessageHandler(
+            filters.ALL & ~filters.COMMAND,
+            inoltra
+        ),
+        group=1
+    )
+    
     flask_app = Flask(__name__)
 
 
