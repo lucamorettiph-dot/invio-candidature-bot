@@ -15,6 +15,7 @@ from telegram.ext import (
 
 TOKEN = os.environ.get("BOT_TOKEN")
 
+print("VERSIONE BOT TEST 123")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
