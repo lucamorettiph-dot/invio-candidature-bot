@@ -115,13 +115,12 @@ def main():
             app.bot
         )
 
-        loop = asyncio.get_event_loop()
-
-        loop.create_task(
+        asyncio.run(
             app.process_update(update)
         )
 
         return "ok"
+
 
     async def setup():
 
