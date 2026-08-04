@@ -26,13 +26,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 async def chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("CHAT:", update.effective_chat.id)
-
-    await update.message.reply_text(
-        "👋 Benvenuto!\n\n"
-        "Invia foto o messaggi.\n"
-        "Il contenuto verrà inoltrato automaticamente."
-    )
+    print("CHAT ID:", update.effective_chat.id)
+    print("TIPO:", update.effective_chat.type)
 
 
 async def inoltra(update: Update, context: ContextTypes.DEFAULT_TYPE):
