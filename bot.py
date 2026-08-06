@@ -3,7 +3,7 @@ import asyncio
 
 from flask import Flask, request
 
-from telegram import Update, InputMediaPhoto
+from telegram import Update
 
 from telegram.ext import (
     Application,
@@ -24,8 +24,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
         "👋 Benvenuto!\n\n"
-        "Invia foto, messaggi o file.\n"
-        "Il contenuto verrà inoltrato automaticamente."
+        "Invia foto, testo o file.\n"
+        "Il contenuto verrà inviato automaticamente."
     )
 
 
@@ -34,89 +34,17 @@ async def inoltra(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
 
-        msg = update.message
+        await context.bot.copy_message(
+            chat_id=GRUPPO_ID,
+            from_chat_id=update.message.chat.id,
+            message_id=update.message.message_id
+        )
 
 
-        # ALBUM DI FOTO
-        if msg.media_group_id:
-
-            if "album" not in context.chat_data:
-                context.chat_data["album"] = []
-
-            context.chat_data["album"].append(
-                msg.photo[-1].file_id
-            )
-
-
-            await asyncio.sleep(2)
-
-
-            media = []
-
-            for foto in context.chat_data["album"]:
-
-                media.append(
-                    InputMediaPhoto(
-                        media=foto
-                    )
-                )
-
-
-            await context.bot.send_media_group(
-                chat_id=GRUPPO_ID,
-                media=media
-            )
-
-
-            context.chat_data["album"] = []
-
-
-
-        # FOTO SINGOLA
-        elif msg.photo:
-
-            await context.bot.send_photo(
-                chat_id=GRUPPO_ID,
-                photo=msg.photo[-1].file_id,
-                caption=msg.caption
-            )
-
-
-
-        # TESTO
-        elif msg.text:
-
-            await context.bot.send_message(
-                chat_id=GRUPPO_ID,
-                text=msg.text
-            )
-
-
-
-        # DOCUMENTI / FILE
-
-        elif msg.document:
-
-            await context.bot.send_document(
-                chat_id=GRUPPO_ID,
-                document=msg.document.file_id,
-                caption=msg.caption
-            )
-
-
-
-        # VIDEO
-
-        elif msg.video:
-
-            await context.bot.send_video(
-                chat_id=GRUPPO_ID,
-                video=msg.video.file_id,
-                caption=msg.caption
-            )
-
-
-        print("MESSAGGIO INVIATO", flush=True)
+        print(
+            "MESSAGGIO COPIATO",
+            flush=True
+        )
 
 
     except Exception as e:
@@ -230,7 +158,6 @@ def main():
             10000
         )
     )
-
 
 
     flask_app.run(
